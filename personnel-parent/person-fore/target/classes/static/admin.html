@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户查询</title>
+    <link href="common.html" rel="import">
+    <link href="css/bootstrap-datetimepicker.min.css" rel="stylesheet" rel="external nofollow">
+
+    <script type="text/javascript">
+
+        $(function () {
+            $('#grid').datagrid({
+                pagination: true,
+                pageSize: 10,
+                pageList: [5, 10, 15, 20],
+                method: "POST",
+                url: '/Info/find',
+                toolbar: toolbar,
+                columns: [[
+                    {
+                        field: 'uid',
+                        title: '工号',
+                        width: 80,
+                        align: 'center'
+                    },
+                    {
+                        field: 'name',
+                        title: '姓名',
+                        width: 150,
+                        align: 'center'
+                    },
+                    {
+                        field: 'telephone',
+                        title: '用户名',
+                        width: 150,
+                        align: 'center'
+                    }, {
+                        field: 'password',
+                        title: "密码",
+                        width: 80,
+                        align: 'center'
+                    }, {
+                        field: 'mail',
+                        title: '邮箱',
+                        width: 150,
+                        align: 'center'
+                    }
+                ]],
+                toolbar: [
+
+                    //增加
+                    {
+                        id: 'button-add',
+                        text: '增加',
+                        iconCls: 'icon-add',
+                        handler: function () {
+                            //重置表单
+                            $("#standardWindow").form('clear');
+                            //添加按钮
+                            $("#standardWindow").window('open');
+                            // 添加
+                            $("#save").bind('click', function () {
+                                // 判断是否form中所有表单对象 都是通过校验
+                                if ($("#standardForm").form('validate')) {
+                                    console.log($("#standardForm").serialize())
+                                    $.ajax({
+                                        type: "POST",
+                                        url: "/Info/add",
+                                        data: $("#standardForm").serialize(),
+                                        statusCode: {
+                                            200: function () {
+                                                $.messager.alert('提示', '新增成功!');
+                                                $("#standardWindow").window('close');
+                                                $('#grid').datagrid('reload');
+                                            },
+                                            500: function () {
+                                                $.messager.alert('提示', '新增失败!');
+                                            }
+                                        }
+                                    });
+
+                                } else {
+                                    $.messager.alert("警告", "表单中还存在需要一些非法内容", "warning");
+                                }
+                            });
+
+                        }
+                    },
+
+                    //删除
+                    {
+                        id: 'button-delete',
+                        text: '删除',
+                        iconCls: 'icon-edit',
+                        handler: function () {
+
+                            var id = [];
+                            $.each($(".datagrid-row-checked"), function (i, t) {
+                                id.push(Number($(t).find("td[field=uid]").children().text()));
+                            })
+                            $.ajax({
+                                type: "POST",
+                                url: "/Info/del",
+                                data: JSON.stringify(id),
+                                contentType: 'application/json',
+                                dataType: 'json',
+                                statusCode: {
+                                    200: function () {
+                                        $.messager.alert('提示', '删除成功!');
+                                        $("#standardWindow").window('close');
+                                        $('#grid').datagrid('reload');
+                                    },
+                                    500: function () {
+                                        $.messager.alert('提示', '删除失败!');
+                                    }
+                                }
+                            });
+
+
+                        }
+                    }
+
+                ]
+
+            });
+        });
+
+
+    </script>
+
+</head>
+<body>
+
+<div class="demo-info">
+    <div class="demo-tip icon-tip">
+
+    </div>
+</div>
+<div style="margin:10px 0;">
+
+</div>
+
+<table id="grid">
+
+</table>
+
+<!--添加-->
+<div class="easyui-window" title="添加用户" id="standardWindow" collapsible="false" minimizable="false" maximizable="false"
+     modal="true" closed="true" style="width:400px;top:50px;left:200px">
+    <div region="north" style="height:31px;overflow:hidden;" split="false" border="false">
+        <div class="datagrid-toolbar">
+            <a id="save" icon="icon-save" href="#" class="easyui-linkbutton" plain="true">保存</a>
+        </div>
+    </div>
+
+    <div region="center" style="overflow:auto;padding:5px;" border="false">
+
+        <form id="standardForm">
+            <table class="table-edit" width="80%" align="center">
+
+                <tr>
+                    <td>员工编号</td>
+                    <td>
+                        <input type="text" name="uid"
+                               class="easyui-validatebox" data-options="required:true" autocomplete="off"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>员工姓名</td>
+                    <td>
+                        <input type="text" name="name"
+                               class="easyui-validatebox" data-options="required:true" autocomplete="off"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>用户名</td>
+                    <td>
+                        <input type="text" name="telephone" placeholder="请输入手机号码"
+                               class="easyui-validatebox" data-options="required:true" autocomplete="off"/>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>邮箱</td>
+                    <td>
+                        <input type="text" name="mail" placeholder="请输入邮箱地址"
+                               class="easyui-validatebox" data-options="required:true" autocomplete="off"/>
+                    </td>
+                </tr>
+
+            </table>
+        </form>
+    </div>
+
+</div>
+
+</body>
+</html>

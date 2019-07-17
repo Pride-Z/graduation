@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <title>提交报销单</title>
+    <link rel="import" href="common.html">
+    <script src="js/bootstrap-datetimepicker.js"></script>
+    <script src="js/bootstrap-datetimepicker.zh-CN.js"></script>
+
+    <script type="text/javascript" >
+
+        //日期选择
+        $('.date').datetimepicker({
+            language: 'zh-CN',//显示中文
+            format: 'yyyy-mm-dd',//显示格式
+            minView: "month",//设置只显示到月份
+            initialDate: new Date(),//初始化当前日期
+            autoclose: true,//选中自动关闭
+            todayBtn: true//显示今日按钮
+        });
+
+        $(function () {
+            $('#categoryTable').datagrid({
+                url: '/Emp/selectUser',
+                method: 'get',
+                columns: [[
+                    {field:'id',title:'报销单编号',width:100,align:'center'},
+                    {field:'submitter',title:'提交人',width:100,align:'center'},
+                    {field:'location',title:'报销地点',width:200,align:'center'},
+                    {field:'message',title:'报销内容',width:200,align:'center'},
+                    {field:'date',title:'报销日期',width:200,align:'center'},
+                    {field:'price',title:'报销价格',width:200,align:'center'},
+                    {field:'status',title:'审批状态',width:150,align:'center'}
+                ]],
+                toolbar: [
+                    {
+                        id: 'button-edit',
+                        text: '新建',
+                        iconCls: 'icon-edit',
+                        handler: function(){
+                            //重置表单
+                            $("#standardWindow").form('clear');
+                            //添加按钮
+                            $("#standardWindow").window('open');
+                            // 添加
+                            $("#save").bind('click', function () {
+                                // 判断是否form中所有表单对象 都是通过校验
+                                if ($("#standardForm").form('validate')) {
+                                    console.log($("#standardForm").serialize())
+                                    $.ajax({
+                                        type: "POST",
+                                        url: "/Emp/addExp",
+                                        data: $("#standardForm").serialize(),
+                                        statusCode: {
+                                            200: function () {
+                                                $.messager.alert('提示', '新建成功!');
+                                                $("#standardWindow").window('close');
+                                                $('#grid').datagrid('reload');
+                                            },
+                                            500: function () {
+                                                $.messager.alert('提示', '新增失败!');
+                                            }
+                                        }
+                                    });
+
+                                } else {
+                                    $.messager.alert("警告", "表单中还存在需要一些非法内容", "warning");
+                                }
+                            });
+
+                        }
+                    }
+                ]
+            })
+        });
+
+    </script>
+</head>
+
+
+<body>
+
+
+<div class="easyui-window" title="新建报销单" id="standardWindow" collapsible="false" minimizable="false" maximizable="false"
+     modal="true" closed="true" style="width:400px;top:50px;left:200px">
+    <div region="north" style="height:31px;overflow:hidden;" split="false" border="false">
+        <div class="datagrid-toolbar">
+            <a id="save" icon="icon-save" href="#" class="easyui-linkbutton" plain="true">提交</a>
+        </div>
+    </div>
+
+    <div region="center" style="overflow:auto;padding:5px;" border="false">
+
+        <form id="standardForm">
+            <table class="table-edit" width="80%" align="center">
+
+                <tr>
+                    <td>报销地点</td>
+                    <td>
+                        <input type="text" name="location"
+                               class="easyui-validatebox" data-options="required:true"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>报销内容</td>
+                    <td>
+                        <input type="text" name="message"
+                               class="easyui-validatebox" data-options="required:true"/>
+                    </td>
+                </tr>
+                <tr>
+                <tr>
+                    <td>报销价格</td>
+                    <td>
+                        <input type="text" name="price"
+                               class="easyui-validatebox" data-options="required:true"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>报销日期</td>
+                    <td>
+                        <input type="date" class="easyui-validatebox" placeholder="请选择日期" name="time"
+                               autocomplete="off"
+                               required="true"/>
+                    </td>
+                </tr>
+
+            </table>
+        </form>
+    </div>
+
+</div>
+
+<table id="categoryTable"></table>
+
+</body>
+
+
+
+</html>

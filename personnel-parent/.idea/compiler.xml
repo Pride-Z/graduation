@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="person-dao" />
+        <module name="person-service" />
+        <module name="person-domain" />
+        <module name="person-fore" />
+        <module name="person-management" />
+        <module name="person-util" />
+      </profile>
+    </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="person-dao" options="-parameters" />
+      <module name="person-domain" options="-parameters" />
+      <module name="person-fore" options="-parameters" />
+      <module name="person-management" options="-parameters" />
+      <module name="person-service" options="-parameters" />
+      <module name="person-util" options="-parameters" />
+    </option>
+  </component>
+</project>

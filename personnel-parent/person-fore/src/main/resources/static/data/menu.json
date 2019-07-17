@@ -1,0 +1,6 @@
+[
+		{ "id":"11", "pId":"0", "name":"基本功能"},
+		{ "id":"111", "pId":"11", "name":"信息查看",  "page":"userInfo.html"},
+	{ "id":"112", "pId":"11", "name":"新建报销单",  "page":"bpm_apply.html"}
+
+]

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8"/>
+    <title>人员管理系统</title>
+    <link href="common.html" rel="import">
+
+
+    <!-- 导入ztree类库 -->
+    <link href="./js/ztree/zTreeStyle.css" rel="stylesheet" type="text/css"/>
+    <script src="./js/ztree/jquery.ztree.all-3.5.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        $(function () {
+            /**
+             Ztree菜单通用配置
+             */
+            var setting = {
+                data: {
+                    simpleData: { // 简单数据
+                        enable: true,
+                        //pIdKey : 'pid'
+                    }
+                },
+                callback: {
+                    onClick: onClick
+                }
+            };
+
+            // 基本功能菜单加载
+            $.get("./data/admin.json", function (data) {
+                $.fn.zTree.init($("#treeMenu"), setting, data);
+            }, "json");
+
+
+            // 设置全局变量 保存当前正在右键的tabs 标题
+            var currentRightTitle;
+
+            // 为选项卡，添加右键菜单
+            $('#tabs').tabs({
+                onContextMenu: function (e, title, index) {
+                    currentRightTitle = title;
+                    $('#mm').menu('show', {
+                        left: e.pageX,
+                        top: e.pageY
+                    });
+                    e.preventDefault(); // 禁用原来的右键效果
+                }
+            });
+
+            $('#mm').menu({
+                onClick: function (item) {
+                    if (item.name === 'Close') {
+                        $('#tabs').tabs('close', currentRightTitle);
+                    } else if (item.name === 'CloseOthers') {
+                        var tabs = $('#tabs').tabs('tabs');
+                        $(tabs).each(function () {
+                            if ($(this).panel('options').title != '消息中心' && $(this).panel('options').title != currentRightTitle) {
+                                $('#tabs').tabs('close', $(this).panel('options').title);
+
+                            }
+                        });
+                    } else if (item.name === 'CloseAll') {
+                        var tabs = $('#tabs').tabs('tabs');
+                        $(tabs).each(function () {
+                            if ($(this).panel('options').title != '消息中心') {
+                                $('#tabs').tabs('close', $(this).panel('options').title);
+                            }
+                        });
+                    }
+                }
+            });
+        });
+
+        function onClick(event, treeId, treeNode, clickFlag) {
+            // 判断树菜单节点是否含有 page属性
+            if (treeNode.page != undefined && treeNode.page != "") {
+                if ($("#tabs").tabs('exists', treeNode.name)) {// 判断tab是否存在
+                    $('#tabs').tabs('select', treeNode.name); // 切换tab
+                } else {
+                    // 开启一个新的tab页面
+                    var content = '<div style="width:100%;height:100%;overflow:hidden;">'
+                        + '<iframe src="'
+                        + treeNode.page
+                        + '" scrolling="auto" style="width:100%;height:100%;border:0;" ></iframe></div>';
+
+                    $('#tabs').tabs('add', {
+                        title: treeNode.name,
+                        content: content,
+                        closable: true,
+                        tools: [{
+                            iconCls: 'icon-reload', // 刷新按钮
+                            handler: function () {
+                                var tab = $('#tabs').tabs('getTab', treeNode.name);
+                                $("iframe[src='" + treeNode.page + "']").get(0).contentWindow.location.reload(true);
+                            }
+                        }]
+                    });
+                }
+            }
+        }
+
+        /*******顶部特效 *******/
+        /**
+         * 更换EasyUI主题的方法
+         * @param themeName
+         * 主题名称
+         */
+        changeTheme = function (themeName) {
+            var $easyuiTheme = $('#easyuiTheme');
+            var url = $easyuiTheme.attr('href');
+            var href = url.substring(0, url.indexOf('themes')) + 'themes/'
+                + themeName + '/easyui.css';
+            $easyuiTheme.attr('href', href);
+            var $iframe = $('iframe');
+            if ($iframe.length > 0) {
+                for (var i = 0; i < $iframe.length; i++) {
+                    var ifr = $iframe[i];
+                    $(ifr).contents().find('#easyuiTheme').attr('href', href);
+                }
+            }
+        };
+
+        // 退出登录
+        function logoutFun() {
+            $.messager
+                .confirm('系统提示', '您确定要退出本次登录吗?', function (isConfirm) {
+                    if (isConfirm) {
+
+                        window.location.href = "http://localhost:8292/index.html"
+                    }
+                });
+        }
+
+        // 修改密码
+        function editPassword() {
+            $('#editPwdWindow').window('open');
+            //重置表单
+            $("#editPwdWindow").form('clear');
+            var password = "";
+            var password1 = "";
+            $("#btnEp").off().on("click", function () {
+
+                password1 = $("#txtNewPass").val();
+                password = $("#txtRePass").val();
+                if (password) {
+                    // console.log(password);
+                    //ajax
+                    $.ajax({
+                            type: "GET",
+                            url: "User/change?password="+password ,
+                            statusCode: {
+                                200: function () {
+                                    $.messager.alert("提示", "修改成功!请重新登陆!",'info',function () {
+                                        //修改成功后重新登陆
+                                        window.location.href = "http://localhost:8292/index.html"
+                                    });
+
+                                },
+                                500: function () {
+                                    $.messager.alert("警告", "修改失败");
+                                }
+                            }
+                        }
+                    )
+
+                } else {
+                    $.messager.alert("提醒", "密码输入不一致!");
+                }
+
+            });
+
+        }
+
+
+
+
+        // 版权信息
+        function showAbout() {
+            $.messager.alert("后台管理平台", "Design By @kun.chang <br/> 管理员邮箱: kun.chang@definesys.com <br/>");
+        }
+    </script>
+</head>
+
+<body class="easyui-layout">
+<div data-options="region:'north',border:false" style="height:70px;padding:10px;">
+    <div>
+        <!--<img src="./images/logo.png" border="0">-->
+        <a class="navbar-brand" href="#"><img src="/img/icon/tupian.jpg" style="margin-top: -19px" width="65px"></a>
+    </div>
+    <div id="sessionInfoDiv" style="position: absolute;right: 5px;top:10px;">
+        [<strong th:text="#{session.user}">您好管理员</strong>]，欢迎登录！
+    </div>
+    <div style="position: absolute; right: 5px; bottom: 10px; ">
+        <a class="easyui-menubutton" data-options="menu:'#layout_north_pfMenu',iconCls:'icon-ok'"
+           href="javascript:void(0);">更换皮肤</a>
+        <a class="easyui-menubutton" data-options="menu:'#layout_north_kzmbMenu',iconCls:'icon-help'"
+           href="javascript:void(0);">控制面板</a>
+    </div>
+    <div id="layout_north_pfMenu" style="width: 120px; display: none;">
+        <div onclick="changeTheme('default');">default</div>
+        <div onclick="changeTheme('gray');">gray</div>
+        <div onclick="changeTheme('black');">black</div>
+        <div onclick="changeTheme('bootstrap');">bootstrap</div>
+        <div onclick="changeTheme('metro');">metro</div>
+    </div>
+    <div id="layout_north_kzmbMenu" style="width: 100px; display: none;">
+        <div onclick="editPassword();">修改密码</div>
+        <div class="menu-sep"></div>
+        <div onclick="logoutFun();">退出系统</div>
+    </div>
+</div>
+<div data-options="region:'west',split:true,title:'内容导航'" style="width:200px">
+    <div border="false" class="easyui-accordion" fit="true">
+        <div data-options="iconCls:'icon-mini-add'" style="overflow:auto" title="功能列表">
+            <ul class="ztree" id="treeMenu"></ul>
+        </div>
+
+    </div>
+</div>
+<div data-options="region:'center'">
+    <div border="false" class="easyui-tabs" fit="true" id="tabs">
+        <div id="subWarp" style="width:100%;height:100%;overflow:hidden" title="消息中心">
+
+        </div>
+    </div>
+</div>
+<div data-options="region:'south',border:false" style="height:50px;padding:10px;">
+    <table style="width: 100%;">
+        <tbody>
+        <tr>
+            <td style="width: 400px;">
+                <div style="color: #999; font-size: 8pt;">
+                    人员信息管理平台 | Designed by <a href="http://www.changkun.com/">kun.chang</a>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<!--修改密码窗口-->
+<div class="easyui-window" closed="true" collapsible="false" icon="icon-save" id="editPwdWindow" maximizable="false"
+     minimizable="false" modal="true" resizable="false" style="width: 300px; height: 160px; padding: 5px;
+        background: #fafafa" title="修改密码">
+    <div class="easyui-layout" fit="true">
+        <div border="false" region="center" style="padding: 10px; background: #fff; border: 1px solid #ccc;">
+            <table cellpadding=3>
+                <tr>
+                    <td>新密码：</td>
+                    <td>
+                        <input class="txt01" id="txtNewPass" type="Password"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>确认密码：</td>
+                    <td>
+                        <input class="txt01" id="txtRePass" type="Password"/>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div border="false" region="south" style="text-align: right; height: 30px; line-height: 30px;">
+            <a class="easyui-linkbutton" href="javascript:void(0)" icon="icon-ok" id="btnEp">确定</a>
+            <a class="easyui-linkbutton" href="javascript:void(0)" icon="icon-cancel" id="btnCancel">取消</a>
+        </div>
+    </div>
+</div>
+
+<div class="easyui-menu" id="mm" style="width:120px;">
+    <div data-options="name:'Close'">关闭当前窗口</div>
+    <div data-options="name:'CloseOthers'">关闭其它窗口</div>
+    <div class="menu-sep"></div>
+    <div data-options="iconCls:'icon-cancel',name:'CloseAll'">关闭全部窗口</div>
+</div>
+
+</body>
+
+</html>

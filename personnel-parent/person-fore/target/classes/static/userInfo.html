@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>信息查看</title>
+    <link rel="import" href="common.html">
+    <link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css" rel="external nofollow">
+
+    <script type="text/javascript">
+        //页面展示(查询)
+        $(function () {
+            $('#grid').datagrid({
+                method: "POST",
+                url: '/Emp/findUser',
+                columns: [[
+                    {
+                        field: 'id',
+                        title: '工号',
+                        width: 80,
+                        align: 'center'
+                    },
+                    {
+                        field: 'name',
+                        title: '姓名',
+                        width: 100,
+                        align: 'center'
+                    }, {
+                        field: 'sex',
+                        title: "性别",
+                        width: 80,
+                        align: 'center'
+                    }, {
+                        field: 'ages',
+                        title: '年龄',
+                        width: 80,
+                        align: 'center'
+
+                    }, {
+                        field: 'phone',
+                        title: "手机号",
+                        width: 150,
+                        align: 'center'
+                    },
+                    {
+                        field: 'email',
+                        title: "邮箱",
+                        width: 150,
+                        align: 'center'
+                    }, {
+                        field: 'date',
+                        title: "入职时间",
+                        width: 120,
+                        align: 'center'
+                    }, {
+                        field: 'department',
+                        title: "部门",
+                        width: 100,
+                        align: 'center'
+                    },
+                    {
+                        field: 'location',
+                        title: "Base地",
+                        width: 100,
+                        align: 'center'
+                    }
+
+                ]],
+                toolbar: [
+                    {
+                        id: 'button-edit',
+                        text: '修改',
+                        iconCls: 'icon-edit',
+                        handler: function () {
+                            var row = $('#grid').datagrid('getSelections');
+                            $("#updateWindow").window('open');
+                            $("#updateForm").form("load", row[0]);
+                            console.log(row[0])
+
+                        }
+                    }
+                ]
+
+            })
+            $("#update").bind('click', function () {
+                if ($("#updateForm").form('validate')) {
+                    $.ajax({
+                        type: "POST",
+                        url: "/Emp/update",
+                        data: $("#updateForm").serialize(),
+                        statusCode: {
+                            200: function () {
+                                $.messager.alert("提示", "修改成功");
+                                $("#updateWindow").window("close");
+                                $("#grid").datagrid("reload");
+                            },
+                            500: function () {
+                                $.messager.alert("提示", "修改失败")
+                            }
+
+                        }
+                    })
+                }
+
+            })
+        })
+
+
+    </script>
+</head>
+<body>
+<div class="demo-info">
+    <div class="demo-tip icon-tip"></div>
+</div>
+<div style="margin:10px 0;"></div>
+
+<table id="grid">
+
+</table>
+
+<!--修改-->
+<div class="easyui-window" title="修改信息" id="updateWindow" collapsible="false" minimizable="false" maximizable="false"
+     modal="true" closed="true" style="width:400px;top:50px;left:200px">
+    <div region="north" style="height:31px;overflow:hidden;" split="false" border="false">
+        <div class="datagrid-toolbar">
+            <a id="update" icon="icon-save" href="#" class="easyui-linkbutton" plain="true">保存</a>
+        </div>
+    </div>
+
+    <div region="center" style="overflow:auto;padding:5px;" border="false">
+
+        <form id="updateForm">
+            <table class="table-edit" width="80%" align="center">
+
+                <tr>
+                    <td>员工编号</td>
+                    <td>
+                        <input type="text" name="id"
+                               class="easyui-validatebox" data-options="required:true" readonly="true"/>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>人员姓名</td>
+                    <td>
+                        <input type="text" name="name" autocomplete="off"
+                               class="easyui-validatebox" data-options="required:true" readonly="true"/>
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td>手机号码</td>
+                    <td>
+
+                        <input type="text" name="phone" autocomplete="off"
+                               class="easyui-validatebox" data-options="required:true"/>
+                    </td>
+
+                </tr>
+
+                <tr>
+                    <td>邮箱</td>
+                    <td>
+
+                        <input type="text" name="email" autocomplete="off"
+                               class="easyui-validatebox" data-options="required:true"/>
+                    </td>
+
+                </tr>
+                <tr>
+                    <td>部门</td>
+                    <td>
+                        <input id="oneid1" class="easyui-combobox" name="department"
+                               data-options="valueField:'dname',textField:'dname',url:'/deptfore/findDeptFirst',method:'get'"/>
+
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td>Base地</td>
+                    <td>
+
+                        <input type="text" name="location"
+                               class="easyui-combobox"
+                               data-options="valueField:'location',textField:'location',url:'/deptfore/find',method:'get'"/>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

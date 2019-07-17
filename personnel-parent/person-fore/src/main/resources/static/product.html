@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>人员管理</title>
+    <link rel="import" href="common.html">
+    <link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css" rel="external nofollow">
+    <script src="js/bootstrap-datetimepicker.js"></script>
+    <script src="js/bootstrap-datetimepicker.zh-CN.js"></script>
+
+
+    <script type="text/javascript">
+        //日期选择
+        $('.date').datetimepicker({
+            language: 'zh-CN',//显示中文
+            format: 'yyyy-mm-dd',//显示格式
+            minView: "month",//设置只显示到月份
+            initialDate: new Date(),//初始化当前日期
+            autoclose: true,//选中自动关闭
+            todayBtn: true//显示今日按钮
+        });
+
+
+        //页面展示(查询)
+        $(function () {
+            $('#grid').datagrid({
+                pagination: true,
+                pageSize: 10,
+                pageList: [5, 10, 15, 20],
+                method: "POST",
+                url: '/Emp/find',
+                toolbar: toolbar,
+                columns: [[
+                    {
+                        field: 'id',
+                        title: '工号',
+                        width: 80,
+                        align: 'center'
+                    },
+                    {
+                        field: 'name',
+                        title: '姓名',
+                        width: 100,
+                        align: 'center'
+                    }, {
+                        field: 'sex',
+                        title: "性别",
+                        width: 80,
+                        align: 'center'
+                    }, {
+                        field: 'ages',
+                        title: '年龄',
+                        width: 80,
+                        align: 'center'
+
+                    }, {
+                        field: 'phone',
+                        title: "手机号",
+                        width: 150,
+                        align: 'center'
+                    },
+                    {
+                        field: 'email',
+                        title: "邮箱",
+                        width: 150,
+                        align: 'center'
+                    }, {
+                        field: 'date',
+                        title: "入职时间",
+                        width: 120,
+                        align: 'center'
+                    }, {
+                        field: 'department',
+                        title: "部门",
+                        width: 100,
+                        align: 'center'
+                    },
+                    {
+                        field: 'location',
+                        title: "Base地",
+                        width: 100,
+                        align: 'center'
+                    }
+
+                ]],
+                toolbar: [
+                    //增加
+                    {
+                        id: 'button-add',
+                        text: '增加',
+                        iconCls: 'icon-add',
+                        handler: function () {
+                            //重置表单
+                            $("#standardWindow").form('clear');
+                            $("#standardWindow").window('open');
+
+                        }
+                    },
+
+                    //编辑
+                    {
+                        id: 'button-edit',
+                        text: '编辑',
+                        iconCls: 'icon-edit',
+                        handler: function () {
+                            var row = $('#grid').datagrid('getSelections');
+                            if (row.length == 1) {
+                                $("#updateWindow").window('open');
+                                $("#updateForm").form("load", row[0]);
+                                console.log(row[0])
+                            } else {
+                                $.messager.alert("提醒", "请选择一行数据");
+                            }
+                        }
+                    },
+
+                    //删除
+                    {
+                        id: 'button-delete',
+                        text: '删除',
+                        iconCls: 'icon-edit',
+                        handler: function () {
+
+                                var id = [];
+                                $.each($(".datagrid-row-checked"), function (i, t) {
+                                    id.push(Number($(t).find("td[field=id]").children().text()));
+                                })
+                                $.ajax({
+                                    type: "POST",
+                                    url: "/Emp/del",
+                                    data: JSON.stringify(id),
+                                    contentType: 'application/json',
+                                    dataType: 'json',
+                                    statusCode: {
+                                        200: function () {
+                                            $.messager.alert('提示', '删除成功!');
+                                            $("#standardWindow").window('close');
+                                            $('#grid').datagrid('reload');
+                                        },
+                                        500: function () {
+                                            $.messager.alert('提示', '删除失败!');
+                                        }
+                                    }
+                                });
+
+
+                        }
+                    }
+                ]
+
+            });
+
+            // 添加
+            $("#save").bind('click', function () {
+                // 判断是否form中所有表单对象 都是通过校验
+                if ($("#standardForm").form('validate')) {
+                    console.log($("#standardForm").serialize())
+                    $.ajax({
+                        type: "POST",
+                        url: "/Emp/add",
+                        data: $("#standardForm").serialize(),
+                        statusCode: {
+                            200: function () {
+                                $.messager.alert('提示', '新增成功!');
+                                $("#standardWindow").window('close');
+                                $('#grid').datagrid('reload');
+                            },
+                            500: function () {
+                                $.messager.alert('提示', '新增失败!');
+                            }
+                        }
+                    });
+
+                } else {
+                    $.messager.alert("警告", "表单中存在不正确内容", "warning");
+                }
+            });
+
+            // 修改的保存
+            $("#update").bind('click', function () {
+                if ($("#updateForm").form('validate')) {
+                    $.ajax({
+                        type: "POST",
+                        url: "/Emp/update",
+                        data: $("#updateForm").serialize(),
+                        statusCode: {
+                            200: function () {
+                                $.messager.alert("提示", "修改成功");
+
+                                $("#updateWindow").window("close");
+                                $("#grid").datagrid("reload");
+                            },
+                            500: function () {
+                                $.messager.alert("提示", "修改失败")
+                            }
+
+                        }
+                    })
+
+                }
+
+            });
+
+            $("#btn").click(function () {
+                var name = $("#name").val();
+                $("#grid").datagrid("reload", {"name": name})
+            })
+
+        })
+
+
+    </script>
+</head>
+
+
+<body>
+
+
+<div class="demo-info">
+    <div class="demo-tip icon-tip"></div>
+</div>
+<div style="margin:10px 0;"></div>
+
+<table id="grid">
+
+</table>
+<!--添加-->
+<div class="easyui-window" title="添加人员" id="standardWindow" collapsible="false" minimizable="false" maximizable="false"
+     modal="true" closed="true" style="width:400px;top:50px;left:200px">
+    <div region="north" style="height:31px;overflow:hidden;" split="false" border="false">
+        <div class="datagrid-toolbar">
+            <a id="save" icon="icon-save" href="#" class="easyui-linkbutton" plain="true">保存</a>
+        </div>
+    </div>
+
+    <div region="center" style="overflow:auto;padding:5px;" border="false">
+
+        <form id="standardForm">
+            <table class="table-edit" width="80%" align="center">
+
+                <tr>
+                    <td>员工编号</td>
+                    <td>
+                        <input type="text" name="id" autocomplete="off"
+                               class="easyui-validatebox" data-options="required:true"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>人员姓名</td>
+                    <td>
+                        <input type="text" name="name" autocomplete="off"
+                               class="easyui-validatebox" data-options="required:true"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>性别</td>
+                    <td>
+                        <input type="text" name="sex" autocomplete="off"
+                               class="easyui-validatebox" data-options="required:true"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>年龄</td>
+                    <td>
+                        <input type="text" name="ages" autocomplete="off"
+                               class="easyui-validatebox" data-options="required:true"/>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>手机号码</td>
+                    <td>
+                        <input type="text" name="phone" autocomplete="off" placeholder="请输入正确的手机号"
+                               class="easyui-validatebox" data-options="required:true"/>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>邮箱</td>
+                    <td>
+                        <input type="text" name="email" autocomplete="off" placeholder="请输入邮箱"
+                               class="easyui-validatebox" data-options="required:true"/>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>部门</td>
+                    <td>
+                        <input name="department" class="easyui-combobox"
+                               data-options="valueField:'dname',textField:'dname',url:'/deptfore/findDeptFirst',method:'get'"/>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>入职时间</td>
+                    <td>
+                        <input type="date" class="easyui-validatebox" placeholder="请选择日期" name="createdate"
+                               autocomplete="off"
+                               required="true"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>BASE地</td>
+                    <td>
+                        <input name="location"
+                               class="easyui-combobox"
+                               data-options="valueField:'location',textField:'location',url:'/deptfore/find',method:'get'"/>
+                    </td>
+                </tr>
+
+            </table>
+        </form>
+    </div>
+
+</div>
+
+<!--修改-->
+<div class="easyui-window" title="修改信息" id="updateWindow" collapsible="false" minimizable="false" maximizable="false"
+     modal="true" closed="true" style="width:400px;top:50px;left:200px">
+    <div region="north" style="height:31px;overflow:hidden;" split="false" border="false">
+        <div class="datagrid-toolbar">
+            <a id="update" icon="icon-save" href="#" class="easyui-linkbutton" plain="true">保存</a>
+        </div>
+    </div>
+
+    <div region="center" style="overflow:auto;padding:5px;" border="false">
+
+        <form id="updateForm">
+            <table class="table-edit" width="80%" align="center">
+
+                <tr>
+                    <td>员工编号</td>
+                    <td>
+                        <input type="text" name="id"
+                               class="easyui-validatebox" data-options="required:true" readonly="true"/>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>人员姓名</td>
+                    <td>
+                        <input type="text" name="name" autocomplete="off"
+                               class="easyui-validatebox" data-options="required:true"/>
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td>手机号码</td>
+                    <td>
+
+                        <input type="text" name="phone" autocomplete="off"
+                               class="easyui-validatebox" data-options="required:true"/>
+                    </td>
+
+                </tr>
+
+                <tr>
+                    <td>邮箱</td>
+                    <td>
+
+                        <input type="text" name="email" autocomplete="off"
+                               class="easyui-validatebox" data-options="required:true"/>
+                    </td>
+
+                </tr>
+                <tr>
+                    <td>部门</td>
+                    <td>
+                        <input id="oneid1" class="easyui-combobox" name="department"
+                               data-options="valueField:'dname',textField:'dname',url:'/deptfore/findDeptFirst',method:'get'"/>
+
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td>Base地</td>
+                    <td>
+
+                        <input type="text" name="location"
+                               class="easyui-combobox"
+                               data-options="valueField:'location',textField:'location',url:'/deptfore/find',method:'get'"/>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</div>
+
+<!--删除-->
+<div class="easyui-window" title="删除信息" id="deleteWindow" collapsible="false" minimizable="false" maximizable="false"
+     modal="true" closed="true" style="width:400px;top:50px;left:200px">
+    <div region="north" style="height:31px;overflow:hidden;" split="false" border="false">
+        <div class="datagrid-toolbar">
+            <a id="delete" icon="icon-save" href="#" class="easyui-linkbutton" plain="true">删除</a>
+        </div>
+    </div>
+
+    <div region="center" style="overflow:auto;padding:5px;" border="false">
+
+        <form id="deleteForm">
+            <table class="table-edit" width="80%" align="center">
+
+                <tr>
+                    <td>员工工号</td>
+                    <td>
+                        <input type="text" name="id" id="perid" autocomplete="off"
+                               class="easyui-validatebox" data-options="required:true"/>
+                    </td>
+                </tr>
+
+            </table>
+        </form>
+    </div>
+</div>
+
+
+</body>
+
+
+</html>
